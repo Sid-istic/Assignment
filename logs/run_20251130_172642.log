@@ -1,0 +1,5 @@
+2025-11-30 22:56:42.365 | INFO     | src.agents.data_agents:summarize:32 - Loaded 4500 rows from data/sample_fb_ads.csv
+2025-11-30 22:56:42.397 | INFO     | src.agents.data_agents:summarize:78 - Found 1369 low-CTR ads (ctr < 0.01, impressions >= 1000)
+2025-11-30 22:56:42.402 | INFO     | src.agents.insight_agent:generate_hypotheses:96 - Generated 3 hypotheses.
+2025-11-30 22:56:42.404 | INFO     | src.agents.evaluator_agent:evaluate:64 - Evaluated hypotheses with quantitative checks.
+2025-11-30 22:56:42.460 | INFO     | src.agents.creative_agent:generate_creatives:81 - Generated creative suggestions for 1369 ads.

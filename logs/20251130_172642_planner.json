@@ -1,0 +1,33 @@
+{
+  "stage": "plan",
+  "user_query": "Analyze ROAS",
+  "tasks": [
+    {
+      "name": "load_and_summarize_data",
+      "description": "Load dataset and compute ROAS/CTR summaries.",
+      "depends_on": []
+    },
+    {
+      "name": "generate_hypotheses",
+      "description": "Generate hypotheses about ROAS changes and performance drivers.",
+      "depends_on": [
+        "load_and_summarize_data"
+      ]
+    },
+    {
+      "name": "evaluate_hypotheses",
+      "description": "Quantitatively validate hypotheses and assign confidence.",
+      "depends_on": [
+        "generate_hypotheses"
+      ]
+    },
+    {
+      "name": "generate_creatives",
+      "description": "Generate new creative ideas for low-CTR campaigns.",
+      "depends_on": [
+        "load_and_summarize_data",
+        "evaluate_hypotheses"
+      ]
+    }
+  ]
+}

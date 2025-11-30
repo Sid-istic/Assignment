@@ -1,0 +1,76 @@
+{
+  "stage": "evaluation",
+  "evaluated_hypotheses": [
+    {
+      "id": 1,
+      "title": "Creative fatigue driving lower CTR",
+      "driver": "creative_fatigue",
+      "description": "Average CTR in the later period is lower than in the early period, which suggests creative fatigue or reduced relevance of messaging.",
+      "reasoning": {
+        "ctr_start": 0.013504977777777778,
+        "ctr_end": 0.012652266666666665
+      },
+      "evaluation": {
+        "confidence": "low",
+        "evidence": {
+          "ctr_drop_ratio": 0.06314050457115411
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "High-spend campaigns with below-average ROAS",
+      "driver": "campaign_allocation",
+      "description": "Some of the highest-spend campaigns are delivering ROAS below the account average, indicating inefficient budget allocation.",
+      "reasoning": {
+        "overall_roas": 5.8253314063265895,
+        "underperforming_campaigns": [
+          {
+            "campaign_name": "Men Bold Colors Drop",
+            "spend": 93111.31,
+            "avg_roas": 2.6812254901960784
+          },
+          {
+            "campaign_name": "MEN Signature Soft",
+            "spend": 79640.54,
+            "avg_roas": 2.3529268292682928
+          },
+          {
+            "campaign_name": "Women Fit & Lift",
+            "spend": 69376.85,
+            "avg_roas": 5.6961538461538455
+          },
+          {
+            "campaign_name": "WOMEN FIT & LIFT",
+            "spend": 31494.24,
+            "avg_roas": 5.372903225806452
+          },
+          {
+            "campaign_name": "MEN BOLD COLORS DROP",
+            "spend": 29930.05,
+            "avg_roas": 2.3578688524590166
+          }
+        ]
+      },
+      "evaluation": {
+        "confidence": "medium",
+        "evidence": {
+          "share_of_spend_in_underperformers": 0.14416598011787632
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Large pool of low-CTR ads suggests need for creative refresh",
+      "driver": "creative_underperformance",
+      "description": "There are multiple ads with low CTR and significant impressions, indicating creative underperformance that can be addressed with new messaging and hooks.",
+      "reasoning": {
+        "num_low_ctr_ads": 1369
+      },
+      "evaluation": {
+        "confidence": "high",
+        "evidence": {}
+      }
+    }
+  ]
+}

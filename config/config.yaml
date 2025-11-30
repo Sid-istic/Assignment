@@ -1,0 +1,22 @@
+paths:
+  data_path: "data/sample_fb_ads.csv"
+  logs_dir: "logs"
+  reports_dir: "reports"
+
+analysis:
+  use_sample_data: true
+  random_seed: 42
+  low_ctr_threshold: 0.01         # 1% CTR
+  min_impressions: 1000
+  roas_drop_threshold: 0.2        # 20% drop between first and last quartile
+  min_days_for_trend: 7
+
+llm:
+  use_llm: false                  # keep false so the project works without API keys
+  model_name: "gpt-4.1-mini"
+
+output:
+  max_insights: 10
+  max_creatives_per_ad: 3
+  report_format: "pdf"            # options: pdf, html
+  include_visualizations: true

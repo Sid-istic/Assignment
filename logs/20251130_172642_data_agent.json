@@ -1,0 +1,18 @@
+{
+  "stage": "data_summary",
+  "global_stats": {
+    "num_rows": 4500,
+    "date_range": [
+      "2025-01-01",
+      "2025-03-31"
+    ],
+    "total_spend": 2105579.9,
+    "total_revenue": 12265700.719999999,
+    "overall_roas": 5.8253314063265895,
+    "roas_slope": -0.0069925662622328695,
+    "roas_start": 6.078632661876349,
+    "roas_end": 5.608930392380899,
+    "ctr_start": 0.013504977777777778,
+    "ctr_end": 0.012652266666666665
+  }
+}
