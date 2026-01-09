@@ -5,7 +5,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from src.rag import generate_answer
+from rag import generate_answer
 
 st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
 
@@ -45,4 +45,5 @@ if prompt := st.chat_input("How can I return an item?"):
     
     # Save assistant response
     st.session_state.messages.append({"role": "assistant", "content": response})
+
 
