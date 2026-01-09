@@ -1,5 +1,4 @@
 import streamlit as st
-import time
 import os
 
 st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")

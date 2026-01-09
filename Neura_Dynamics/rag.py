@@ -33,9 +33,18 @@ ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-Mi
 client = chromadb.PersistentClient(path=DB_DIR)
 collection = client.get_or_create_collection(name=COLLECTION_NAME, embedding_function=ef)
 
-import streamlit as st
+# Simple caching wrapper
+# If running in Streamlit, use st.cache_resource.
+# If running in CLI, just run the function.
+try:
+    import streamlit as st
+    cache_decorator = st.cache_resource
+except ImportError:
+    # Dummy decorator that does nothing
+    def cache_decorator(func):
+        return func
 
-@st.cache_resource
+@cache_decorator
 def load_model():
     print(f"Loading local model {MODEL_NAME}...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -65,7 +74,7 @@ def generate_answer(query):
     
     try:
         # Run generation with specific parameters
-        output = pipe(formatted_prompt, max_length=512, min_length=20, do_sample=False)
+        output = pipe(formatted_prompt, max_length=512, do_sample=False, repetition_penalty=1.1)
         return output[0]['generated_text']
     except Exception as e:
         return f"[Error running local model] {e}"

@@ -1,32 +1,35 @@
+# Simplified Configuration
 import os
 import glob
 import chromadb
 from chromadb.utils import embedding_functions
 
-# Configuration
-import sys
-
-# Get absolute path of this script's directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_DIR = os.path.join(BASE_DIR, "db_chroma")
+# Since files are flat, we look in current dir
+DATA_DIR = "."
+DB_DIR = "db_chroma"
 COLLECTION_NAME = "policies"
-CHUNK_SIZE = 500
+CHUNK_SIZE = 300
 CHUNK_OVERLAP = 50
 
 def load_documents():
-    """Reads policy .txt files from the root directory."""
+    """Reads policy .txt files from the current directory."""
     documents = []
-    # Match all txt files
-    filenames = glob.glob(os.path.join(BASE_DIR, "*.txt"))
+    # Match all .txt files in current directory
+    filenames = glob.glob("*.txt")
     
-    # Filter out requirements.txt if present
-    filenames = [f for f in filenames if "requirements.txt" not in f and "LICENSE" not in f]
+    # Filter out known non-policy files
+    ignore_list = ["requirements.txt", "LICENSE"]
+    filenames = [f for f in filenames if f not in ignore_list]
     
     for f in filenames:
         with open(f, "r", encoding="utf-8") as file:
-            documents.append({"id": f, "text": file.read()})
+            # Prepend filename to content so LLM knows the source context
+            policy_name = os.path.basename(f).replace(".txt", "").replace("_", " ").title()
+            content = f"Document: {policy_name}\n\n" + file.read()
+            documents.append({"id": f, "text": content})
+            
+    print(f"Loaded: {filenames}")
     return documents
-
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -35,9 +38,10 @@ def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     Uses LangChain's RecursiveCharacterTextSplitter for robust chunking.
     """
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=overlap,
-        separators=["\n\n", "\n", " ", ""]
+        chunk_size=chunk_size,    
+        chunk_overlap=overlap,    
+        separators=["\n\n", "\n", ". ", " ", ""],
+        length_function=len,
     )
     return splitter.split_text(text)
 

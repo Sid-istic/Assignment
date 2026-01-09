@@ -1,4 +1,3 @@
-# src/prompts.py
 
 SYSTEM_PROMPT_V1 = """You are a helpful customer support assistant.
 Answer the user's question based on the provided policy documents.
@@ -23,5 +22,4 @@ Context:
 Question: {question}
 Answer:"""
 
-# We will use V2 for the final system
-CHOSEN_PROMPT = SYSTEM_PROMPT_V1
+
