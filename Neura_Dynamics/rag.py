@@ -14,7 +14,7 @@ TOP_K = 3
 MODEL_NAME = "google/flan-t5-base"
 
 
-template = """You are a helpful customer support assistant.
+template =  """You are a helpful customer support assistant.
 Answer the user's question based on the provided policy documents.
 
 Context:
@@ -22,6 +22,7 @@ Context:
 
 Question: {question}
 Answer:"""
+
 
 
 prompt_template = PromptTemplate(
@@ -69,4 +70,3 @@ def generate_answer(query):
 if __name__ == "__main__":
     q = input("Ask a question: ")
     print(generate_answer(q))
-

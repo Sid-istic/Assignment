@@ -2,7 +2,6 @@
 
 SYSTEM_PROMPT_V1 = """You are a helpful customer support assistant.
 Answer the user's question based on the provided policy documents.
-If the answer is not in the documents, say you don't know.
 
 Context:
 {context}
@@ -25,4 +24,4 @@ Question: {question}
 Answer:"""
 
 # We will use V2 for the final system
-CHOSEN_PROMPT = SYSTEM_PROMPT_V2
+CHOSEN_PROMPT = SYSTEM_PROMPT_V1
