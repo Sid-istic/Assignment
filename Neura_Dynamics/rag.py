@@ -2,24 +2,26 @@ import os
 import chromadb
 from chromadb.utils import embedding_functions
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 
-
-load_dotenv()
-
-
-
-# Determine the directory where this script is located
+# Configuration
+# ==========================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_DIR = os.path.join(BASE_DIR, "db_chroma")
+DB_PATH = os.path.join(BASE_DIR, "db_chroma")
 COLLECTION_NAME = "policies"
-TOP_K = 3  # Number of relevant chunks to retrieve
 MODEL_NAME = "google/flan-t5-base"
 
+# Setup Embedding Function
+ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
 
-PROMPT_TEMPLATE = """You are a helpful customer support assistant.
-Answer the user's question based on the provided policy documents.
+# Prompt
+PROMPT_TEMPLATE = """You are an accurate and strict company policy assistant. Your goal is to answer user questions truthfully using ONLY the provided context.
+
+Instructions:
+1. strict_grounding: Answer purely based on the 'Context' provided below. Do not use outside knowledge.
+2. missing_info: If the answer is not explicitly stated in the context, respond with: "I cannot answer this based on the provided policies."
+3. structure: Format your answer clearly. Use bullet points for lists.
+4. tone: Professional and direct.
 
 Context:
 {context}
@@ -32,145 +34,89 @@ prompt_template = PromptTemplate(
     template=PROMPT_TEMPLATE
 )
 
-# ============================================================================
-# DATABASE SETUP
-# ============================================================================
-
-# Initialize embedding function
-ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
-)
-
-# Connect to ChromaDB
-client = chromadb.PersistentClient(path=DB_DIR)
-
+# 1. Database Functions
+# ==========================================
 def get_collection():
-    """
-    Gets or creates the collection. Called dynamically to handle rebuilds.
-    """
-    return client.get_or_create_collection(
-        name=COLLECTION_NAME,
-        embedding_function=ef
-    )
+    """Get the ChromaDB collection. Uses a fresh client to avoid stale handles."""
+    try:
+        client = chromadb.PersistentClient(path=DB_PATH)
+        return client.get_or_create_collection(name=COLLECTION_NAME, embedding_function=ef)
+    except Exception as e:
+        print(f"DB Error: {e}")
+        return None
 
 def get_doc_count():
+    """Helper to check if DB is populated."""
+    col = get_collection()
+    if col:
+        return col.count()
+    return 0
 
-    try:
-        collection = get_collection()
-        return collection.count()
-    except Exception as e:
-        # If collection doesn't exist or is corrupted, return 0
-        print(f"Warning: Could not get doc count: {e}")
-        return 0
+def retrieve_context(query, k=3):
+    """Retrieve relevant chunks."""
+    col = get_collection()
+    if not col or col.count() == 0:
+        return ""
+    
+    results = col.query(query_texts=[query], n_results=k)
+    
+    if not results['documents'] or not results['documents'][0]:
+        return ""
+    
+    # Combine chunks
+    chunks = results['documents'][0]
+    return "\n---\n".join(chunks)
 
-
+# 2. Model Loading (Cached)
+# ==========================================
 try:
     import streamlit as st
     cache_decorator = st.cache_resource
 except ImportError:
-    # Dummy decorator for CLI usage
+    # Fallback for CLI
     def cache_decorator(func):
         return func
 
 @cache_decorator
-def load_model():
-
-    print(f"Loading local model {MODEL_NAME}...")
+def load_llm_pipeline():
+    print(f"Loading model: {MODEL_NAME}...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
-    
     return pipeline(
-        "text2text-generation",
-        model=model,
-        tokenizer=tokenizer,
+        "text2text-generation", 
+        model=model, 
+        tokenizer=tokenizer, 
         max_length=512
     )
 
-# Initialize the pipeline
-pipe = load_model()
+pipeline_instance = load_llm_pipeline()
 
-# ============================================================================
-# RETRIEVAL FUNCTION
-# ============================================================================
-
-def retrieve_context(query):
-
-    try:
-        collection = get_collection()
-        
-        # Safety check: Return empty if database is empty
-        if collection.count() == 0:
-            return ""
-        
-        # Query the vector database
-        results = collection.query(
-            query_texts=[query],
-            n_results=TOP_K
-        )
-        
-        # Safety check: Ensure results exist
-        if not results['documents'] or not results['documents'][0]:
-            return ""
-        
-        # Extract and concatenate document chunks
-        docs = results['documents'][0]
-        return "\n---\n".join(docs)
-    
-    except Exception as e:
-        print(f"Error retrieving context: {e}")
-        return ""
-
-
+# 3. Generation Function
+# ==========================================
 def generate_answer(query):
-    """
-    Main RAG function: Retrieves context and generates answer.
-    
-    Args:
-        query (str): User's question
-        
-    Returns:
-        str: Generated answer or error message
-    """
-    # Step 1: Retrieve relevant context
+    # 1. Retrieve
     context = retrieve_context(query)
     
-    # DEBUG: Log what we retrieved
-    print(f"\n{'='*60}")
-    print(f"QUERY: {query}")
-    print(f"RETRIEVED CONTEXT LENGTH: {len(context)} chars")
-    if context:
-        print(f"CONTEXT PREVIEW: {context[:200]}...")
-    else:
-        print("⚠️ WARNING: NO CONTEXT RETRIEVED!")
-    print(f"{'='*60}\n")
-    
-    # Step 2: Format prompt with context and question
-    formatted_prompt = prompt_template.format(
-        context=context,
-        question=query
+    # Debug info for logs
+    print(f"DEBUG: Query: {query}")
+    print(f"DEBUG: Retrieved {len(context)} chars of context.")
+
+    # 2. Format Prompt
+    prompt = prompt_template.format(context=context, question=query)
+
+    # 3. Generate
+    # Using strict parameters to prevent looping/hallucination
+    result = pipeline_instance(
+        prompt, 
+        max_length=512,
+        do_sample=False, 
+        repetition_penalty=2.0,       # Strong penalty for repeats
+        no_repeat_ngram_size=3        # Hard block on 3-word loops
     )
     
-    # Step 3: Generate answer using local LLM
-    try:
-        output = pipe(
-            formatted_prompt,
-            max_length=512,
-            do_sample=False,
-            repetition_penalty=1.1  # Prevents repetitive output
-        )
-        return output[0]['generated_text']
-    except Exception as e:
-        return f"[Error running local model] {e}"
-
-# ============================================================================
-# CLI TESTING INTERFACE
-# ============================================================================
+    return result[0]['generated_text']
 
 if __name__ == "__main__":
-    print("RAG System - Interactive Mode")
-    print("=" * 60)
-    question = input("Ask a question: ")
-    print("\nGenerating answer...\n")
-    answer = generate_answer(question)
-    print(f"Answer: {answer}")
-
+    # Simple CLI test
+    q = input("Ask a question: ")
+    print(generate_answer(q))

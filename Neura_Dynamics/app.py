@@ -1,68 +1,60 @@
 import streamlit as st
 import os
+# Import our robust helper functions
 from rag import generate_answer, get_doc_count
+# Import ingest function for auto-rebuild
+from ingest import ingest
 
-st.set_page_config(
-    page_title="Policy RAG Bot",
-    page_icon="🤖",
-    layout="centered"
-)
+st.set_page_config(page_title="Policy Bot", page_icon="🤖")
 
+st.title("🤖 Policy Q&A Assistant")
+
+# 1. Sidebar Control
 with st.sidebar:
-    st.header("⚙️ Settings")
+    st.header("Admin System")
+    count = get_doc_count()
+    st.write(f"**Knowledge Base Status:** {count} documents chunks")
     
-    # Display database status
-    doc_count = get_doc_count()
-    st.metric("Documents in Database", doc_count)
-    
-    # Manual rebuild button
-    if st.button("🔄 Rebuild Knowledge Base"):
-        with st.spinner("Rebuilding database..."):
-            from ingest import ingest
+    if st.button("Rebuild Knowledge Base"):
+        with st.spinner("Rebuilding..."):
             ingest()
-            st.cache_resource.clear()  # Clear model cache
-            st.success("✅ Database rebuilt successfully!")
-            st.rerun()  # Refresh to show new count
+            st.success("Analysis Complete!")
+            st.cache_resource.clear()
+            st.rerun()
 
-# Check if database is empty and auto-initialize if needed
-# Use session state to prevent re-running on every rerun
-if "db_initialized" not in st.session_state:
-    st.session_state.db_initialized = False
-
-if not st.session_state.db_initialized and get_doc_count() == 0:
-    with st.spinner("🔨 Building Knowledge Base... (First time setup)"):
-        from ingest import ingest
+# 2. Auto-Initialization Logic
+# If the DB is empty (first run on Cloud), build it.
+if get_doc_count() == 0:
+    with st.spinner("Initializing System (First Run)..."):
         ingest()
-        st.session_state.db_initialized = True
-        st.success("✅ Knowledge Base initialized!")
-        st.rerun()  # Refresh to show updated count
+        st.success("System Ready!")
+        st.rerun()
 
-st.title("🤖 Policy Assistant")
-st.markdown(
-    "Ask questions about **Refunds**, **Cancellations**, or **Shipping** policies."
-)
-
-# Initialize chat history in session state
+# 3. Chat Interface
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# Display history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-# User input
-if prompt := st.chat_input("How can I return an item?"):
-    # Display user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# Handle user input
+if prompt := st.chat_input("Ask about refunds, shipping, or cancellations..."):
+    # Show user message
     with st.chat_message("user"):
         st.markdown(prompt)
-    
-    # Generate and display assistant response
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    # Generate response
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             response = generate_answer(prompt)
             st.markdown(response)
     
-    # Save assistant response to history
     st.session_state.messages.append({"role": "assistant", "content": response})
+
+# 4. Debug Section (Optional, good for troubleshooting Cloud)
+with st.expander("Debug Info"):
+    st.text(f"DB Path: {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_chroma')}")
+    st.text(f"Doc Count: {get_doc_count()}")
