@@ -14,15 +14,15 @@ TOP_K = 3
 MODEL_NAME = "google/flan-t5-base"
 
 
-template = """Answer the question based strictly on the following context. If the answer is not in the context, say "I cannot answer this based on the provided policies."
+template = """You are a helpful customer support assistant.
+Answer the user's question based on the provided policy documents.
 
 Context:
 {context}
 
-Question:
-{question}
-
+Question: {question}
 Answer:"""
+
 
 prompt_template = PromptTemplate(
     input_variables=["context", "question"],
@@ -69,3 +69,4 @@ def generate_answer(query):
 if __name__ == "__main__":
     q = input("Ask a question: ")
     print(generate_answer(q))
+
