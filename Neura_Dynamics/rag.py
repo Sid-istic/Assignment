@@ -18,12 +18,13 @@ TOP_K = 3  # Number of relevant chunks to retrieve
 MODEL_NAME = "google/flan-t5-base"
 
 
-PROMPT_TEMPLATE = """Context:
+PROMPT_TEMPLATE = """You are a helpful customer support assistant.
+Answer the user's question based on the provided policy documents.
+
+Context:
 {context}
 
-Based on the context above, answer the question: {question}
-
-If the answer is not in the context, say "I don't know".
+Question: {question}
 Answer:"""
 
 prompt_template = PromptTemplate(
@@ -172,3 +173,4 @@ if __name__ == "__main__":
     print("\nGenerating answer...\n")
     answer = generate_answer(question)
     print(f"Answer: {answer}")
+
