@@ -4,13 +4,20 @@ import os
 
 st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
 
-# Fix for module resolution
-# sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
 from rag import generate_answer
 
+# Sidebar for admin/debug
+with st.sidebar:
+    st.header("⚙️ Settings")
+    if st.button("Rebuild Knowledge Base"):
+        with st.spinner("Rebuilding..."):
+            from ingest import ingest
+            ingest()
+            # Clear cache to force reload of DB connection if needed
+            st.cache_resource.clear()
+            st.success("Rebuilt successfully!")
+
 # Check if DB exists, if not, ingest data
-import os
 if not os.path.exists("db_chroma"):
     with st.spinner("Building Knowledge Base... (This happens only once)"):
         from ingest import ingest
