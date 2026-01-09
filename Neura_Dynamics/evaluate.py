@@ -1,4 +1,4 @@
-from src.rag import generate_answer
+from rag import generate_answer
 import time
 
 QUESTIONS = [
@@ -35,3 +35,4 @@ def run_evaluation():
 
 if __name__ == "__main__":
     run_evaluation()
+
