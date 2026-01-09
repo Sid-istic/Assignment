@@ -1,33 +1,67 @@
+"""
+Policy RAG Bot - Streamlit Application
+A conversational interface for querying company policies using RAG.
+"""
+
 import streamlit as st
 import os
+from rag import generate_answer, get_doc_count
 
-st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
+# ============================================================================
+# PAGE CONFIGURATION (Must be first Streamlit command)
+# ============================================================================
 
-from rag import generate_answer
+st.set_page_config(
+    page_title="Policy RAG Bot",
+    page_icon="🤖",
+    layout="centered"
+)
 
-# Sidebar for admin/debug
+# ============================================================================
+# SIDEBAR - ADMIN CONTROLS
+# ============================================================================
+
 with st.sidebar:
     st.header("⚙️ Settings")
-    if st.button("Rebuild Knowledge Base"):
-        with st.spinner("Rebuilding..."):
+    
+    # Display database status
+    doc_count = get_doc_count()
+    st.metric("Documents in Database", doc_count)
+    
+    # Manual rebuild button
+    if st.button("🔄 Rebuild Knowledge Base"):
+        with st.spinner("Rebuilding database..."):
             from ingest import ingest
             ingest()
-            # Clear cache to force reload of DB connection if needed
-            st.cache_resource.clear()
-            st.success("Rebuilt successfully!")
+            st.cache_resource.clear()  # Clear model cache
+            st.success("✅ Database rebuilt successfully!")
+            st.rerun()  # Refresh to show new count
 
-# Check if DB exists, if not, ingest data
-if not os.path.exists("db_chroma"):
-    with st.spinner("Building Knowledge Base... (This happens only once)"):
+# ============================================================================
+# AUTOMATIC DATABASE INITIALIZATION
+# ============================================================================
+
+# Check if database is empty and auto-initialize if needed
+if get_doc_count() == 0:
+    with st.spinner("🔨 Building Knowledge Base... (First time setup)"):
         from ingest import ingest
         ingest()
-        st.success("Knowledge Base Built!")
+        st.success("✅ Knowledge Base initialized!")
+
+# ============================================================================
+# MAIN UI
+# ============================================================================
 
 st.title("🤖 Policy Assistant")
-st.markdown("Ask questions about **Refunds**, **Cancellations**, or **Shipping**.")
+st.markdown(
+    "Ask questions about **Refunds**, **Cancellations**, or **Shipping** policies."
+)
 
+# ============================================================================
+# CHAT INTERFACE
+# ============================================================================
 
-# Chat history state
+# Initialize chat history in session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -38,16 +72,16 @@ for message in st.session_state.messages:
 
 # User input
 if prompt := st.chat_input("How can I return an item?"):
-    # Show user message
+    # Display user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-
-    # Generate answer
+    
+    # Generate and display assistant response
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             response = generate_answer(prompt)
             st.markdown(response)
     
-    # Save assistant response
+    # Save assistant response to history
     st.session_state.messages.append({"role": "assistant", "content": response})
