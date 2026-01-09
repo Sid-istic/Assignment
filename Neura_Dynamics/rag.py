@@ -1,8 +1,3 @@
-"""
-RAG (Retrieval-Augmented Generation) Module
-Handles document retrieval and answer generation using local LLM.
-"""
-
 import os
 import chromadb
 from chromadb.utils import embedding_functions
@@ -10,21 +5,16 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 
-# Load environment variables
+
 load_dotenv()
 
-# ============================================================================
-# CONFIGURATION
-# ============================================================================
+
 
 DB_DIR = "db_chroma"
 COLLECTION_NAME = "policies"
 TOP_K = 3  # Number of relevant chunks to retrieve
 MODEL_NAME = "google/flan-t5-base"
 
-# ============================================================================
-# PROMPT TEMPLATE
-# ============================================================================
 
 PROMPT_TEMPLATE = """Use the following pieces of context to answer the question at the end. Answer in detail and complete sentences. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
@@ -60,10 +50,7 @@ def get_collection():
     )
 
 def get_doc_count():
-    """
-    Returns the number of documents in the collection.
-    Used by app.py to check if database needs initialization.
-    """
+
     try:
         collection = get_collection()
         return collection.count()
@@ -72,11 +59,7 @@ def get_doc_count():
         print(f"Warning: Could not get doc count: {e}")
         return 0
 
-# ============================================================================
-# MODEL LOADING
-# ============================================================================
 
-# Smart caching: Use Streamlit's cache if available, otherwise use dummy decorator
 try:
     import streamlit as st
     cache_decorator = st.cache_resource
@@ -87,10 +70,7 @@ except ImportError:
 
 @cache_decorator
 def load_model():
-    """
-    Loads the Flan-T5 model and creates a text generation pipeline.
-    Cached to avoid reloading on every request.
-    """
+
     print(f"Loading local model {MODEL_NAME}...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
@@ -110,15 +90,7 @@ pipe = load_model()
 # ============================================================================
 
 def retrieve_context(query):
-    """
-    Retrieves the most relevant document chunks for a given query.
-    
-    Args:
-        query (str): User's question
-        
-    Returns:
-        str: Concatenated relevant chunks, or empty string if none found
-    """
+
     try:
         collection = get_collection()
         
@@ -144,9 +116,6 @@ def retrieve_context(query):
         print(f"Error retrieving context: {e}")
         return ""
 
-# ============================================================================
-# ANSWER GENERATION
-# ============================================================================
 
 def generate_answer(query):
     """
@@ -160,6 +129,16 @@ def generate_answer(query):
     """
     # Step 1: Retrieve relevant context
     context = retrieve_context(query)
+    
+    # DEBUG: Log what we retrieved
+    print(f"\n{'='*60}")
+    print(f"QUERY: {query}")
+    print(f"RETRIEVED CONTEXT LENGTH: {len(context)} chars")
+    if context:
+        print(f"CONTEXT PREVIEW: {context[:200]}...")
+    else:
+        print("⚠️ WARNING: NO CONTEXT RETRIEVED!")
+    print(f"{'='*60}\n")
     
     # Step 2: Format prompt with context and question
     formatted_prompt = prompt_template.format(
