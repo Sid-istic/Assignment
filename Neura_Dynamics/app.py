@@ -13,7 +13,7 @@ st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
 import os
 if not os.path.exists("db_chroma"):
     with st.spinner("Building Knowledge Base... (This happens only once)"):
-        from src.ingest import ingest
+        from ingest import ingest
         ingest()
         st.success("Knowledge Base Built!")
 
@@ -45,3 +45,4 @@ if prompt := st.chat_input("How can I return an item?"):
     
     # Save assistant response
     st.session_state.messages.append({"role": "assistant", "content": response})
+
