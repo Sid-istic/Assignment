@@ -14,19 +14,12 @@ TOP_K = 3
 MODEL_NAME = "google/flan-t5-base"
 
 
-template =  """You are an accurate and strict company policy assistant. Your goal is to answer user questions truthfully using ONLY the provided context.
+template = """Use the following pieces of context to answer the question at the end. Answer in detail and complete sentences. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
-Instructions:
-1. strict_grounding: Answer purely based on the 'Context' provided below. Do not use outside knowledge.
-2. missing_info: If the answer is not explicitly stated in the context, respond with: "I cannot answer this based on the provided policies."
-3. structure: Format your answer clearly. Use bullet points for lists.
-4. tone: Professional and direct.
-
-Context:
 {context}
 
 Question: {question}
-Answer:"""
+Helpful Answer:"""
 
 
 
@@ -71,8 +64,8 @@ def generate_answer(query):
     formatted_prompt = prompt_template.format(context=context, question=query)
     
     try:
-        # Run generation
-        output = pipe(formatted_prompt)
+        # Run generation with specific parameters
+        output = pipe(formatted_prompt, max_length=512, min_length=20, do_sample=False)
         return output[0]['generated_text']
     except Exception as e:
         return f"[Error running local model] {e}"

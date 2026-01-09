@@ -8,20 +8,25 @@ import sys
 
 # Get absolute path of this script's directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_DIR = os.path.join(BASE_DIR, "db_chroma")
 COLLECTION_NAME = "policies"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 
 def load_documents():
-    """Reads all .txt files from the data directory."""
+    """Reads policy .txt files from the root directory."""
     documents = []
-    filenames = glob.glob(os.path.join(DATA_DIR, "*.txt"))
+    # Match all txt files
+    filenames = glob.glob(os.path.join(BASE_DIR, "*.txt"))
+    
+    # Filter out requirements.txt if present
+    filenames = [f for f in filenames if "requirements.txt" not in f and "LICENSE" not in f]
+    
     for f in filenames:
         with open(f, "r", encoding="utf-8") as file:
             documents.append({"id": f, "text": file.read()})
     return documents
+
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
