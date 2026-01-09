@@ -4,9 +4,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# Configuration
-# ==========================================
-# Get absolute paths to ensure it works on Streamlit Cloud
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "db_chroma")
 COLLECTION_NAME = "policies"
@@ -14,7 +12,6 @@ COLLECTION_NAME = "policies"
 def load_documents():
     """Load .txt files from the script's directory."""
     documents = []
-    # Look for .txt files in the same directory as this script
     search_pattern = os.path.join(BASE_DIR, "*.txt")
     files = glob.glob(search_pattern)
     
@@ -66,8 +63,6 @@ def ingest():
         print("No documents to ingest.")
         return
 
-    # 2. Setup Chroma
-    # Force a fresh client and reset collection
     client = chromadb.PersistentClient(path=DB_PATH)
     ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
     
@@ -79,7 +74,7 @@ def ingest():
 
     collection = client.create_collection(name=COLLECTION_NAME, embedding_function=ef)
 
-    # 3. Process & Add
+
     ids = []
     documents_list = []
     metadatas = []
@@ -107,3 +102,4 @@ def ingest():
 
 if __name__ == "__main__":
     ingest()
+
