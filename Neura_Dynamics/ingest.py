@@ -7,7 +7,7 @@ from chromadb.utils import embedding_functions
 import sys
 
 # Get absolute path of this script's directory
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_DIR = os.path.join(BASE_DIR, "db_chroma")
 COLLECTION_NAME = "policies"
@@ -23,37 +23,18 @@ def load_documents():
             documents.append({"id": f, "text": file.read()})
     return documents
 
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     """
-    Simple recursive-like chunking: 
-    Splits by paragraphs first, then combines/splits to fit chunk_size.
+    Uses LangChain's RecursiveCharacterTextSplitter for robust chunking.
     """
-    chunks = []
-    current_chunk = ""
-    
-    # split by double newline first to preserve paragraphs
-    paragraphs = text.split("\n\n")
-    
-    for para in paragraphs:
-        if len(current_chunk) + len(para) + 2 <= chunk_size:
-            current_chunk += "\n\n" + para if current_chunk else para
-        else:
-            # If current chunk is full, save it
-            if current_chunk:
-                chunks.append(current_chunk)
-            
-            # If paragraph itself is huge, strictly slice it (fallback)
-            if len(para) > chunk_size:
-                for i in range(0, len(para), chunk_size - overlap):
-                    chunks.append(para[i : i + chunk_size])
-                current_chunk = "" # reset
-            else:
-                current_chunk = para # start new chunk
-    
-    if current_chunk:
-        chunks.append(current_chunk)
-        
-    return chunks
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=overlap,
+        separators=["\n\n", "\n", " ", ""]
+    )
+    return splitter.split_text(text)
 
 def ingest():
     print("Loading documents...")

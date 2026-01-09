@@ -14,8 +14,13 @@ TOP_K = 3
 MODEL_NAME = "google/flan-t5-base"
 
 
-template =  """You are a helpful customer support assistant.
-Answer the user's question based on the provided policy documents.
+template =  """You are an accurate and strict company policy assistant. Your goal is to answer user questions truthfully using ONLY the provided context.
+
+Instructions:
+1. strict_grounding: Answer purely based on the 'Context' provided below. Do not use outside knowledge.
+2. missing_info: If the answer is not explicitly stated in the context, respond with: "I cannot answer this based on the provided policies."
+3. structure: Format your answer clearly. Use bullet points for lists.
+4. tone: Professional and direct.
 
 Context:
 {context}
@@ -35,11 +40,16 @@ ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-Mi
 client = chromadb.PersistentClient(path=DB_DIR)
 collection = client.get_or_create_collection(name=COLLECTION_NAME, embedding_function=ef)
 
-# Setup Local LLM
-print(f"Loading local model {MODEL_NAME}...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
-pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_length=512)
+import streamlit as st
+
+@st.cache_resource
+def load_model():
+    print(f"Loading local model {MODEL_NAME}...")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
+    return pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_length=512)
+
+pipe = load_model()
 
 def retrieve_context(query):
     """Retrieves top-k relevant chunks."""

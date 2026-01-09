@@ -14,9 +14,9 @@ This is a Retrieval-Augmented Generation (RAG) system designed to answer questio
    - Copy `.env.example` to `.env`
 
 3. **Ingest Data**
-   - This parses the policies in `data/` and builds the Chroma Vector DB.
+   - This parses the policies in `data/` and builds the Chroma- **Run Interactive Test**:
    ```bash
-   python -m src.ingest
+   python rag.py
    ```
 
 ## Usage

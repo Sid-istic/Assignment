@@ -1,13 +1,13 @@
 import streamlit as st
 import time
-import sys
 import os
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
+
+# Fix for module resolution
+# sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from rag import generate_answer
-
-st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
 
 # Check if DB exists, if not, ingest data
 import os
@@ -45,5 +45,3 @@ if prompt := st.chat_input("How can I return an item?"):
     
     # Save assistant response
     st.session_state.messages.append({"role": "assistant", "content": response})
-
-
