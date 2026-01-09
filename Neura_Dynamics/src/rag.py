@@ -32,7 +32,7 @@ prompt_template = PromptTemplate(
 # Setup DB Client
 ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
 client = chromadb.PersistentClient(path=DB_DIR)
-collection = client.get_collection(name=COLLECTION_NAME, embedding_function=ef)
+collection = client.get_or_create_collection(name=COLLECTION_NAME, embedding_function=ef)
 
 # Setup Local LLM
 print(f"Loading local model {MODEL_NAME}...")
