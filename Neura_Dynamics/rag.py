@@ -10,18 +10,21 @@ load_dotenv()
 
 
 
-DB_DIR = "db_chroma"
+# Determine the directory where this script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.path.join(BASE_DIR, "db_chroma")
 COLLECTION_NAME = "policies"
 TOP_K = 3  # Number of relevant chunks to retrieve
 MODEL_NAME = "google/flan-t5-base"
 
 
-PROMPT_TEMPLATE = """Use the following pieces of context to answer the question at the end. Answer in detail and complete sentences. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
+PROMPT_TEMPLATE = """Context:
 {context}
 
-Question: {question}
-Helpful Answer:"""
+Based on the context above, answer the question: {question}
+
+If the answer is not in the context, say "I don't know".
+Answer:"""
 
 prompt_template = PromptTemplate(
     input_variables=["context", "question"],

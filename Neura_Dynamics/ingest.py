@@ -1,42 +1,25 @@
-"""
-Data Ingestion Pipeline for RAG System
-Loads policy documents, chunks them, and stores in ChromaDB vector database.
-"""
-
 import os
 import glob
 import chromadb
 from chromadb.utils import embedding_functions
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# ============================================================================
-# CONFIGURATION
-# ============================================================================
 
-DB_DIR = "db_chroma"
+# Get absolute directory of this script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.path.join(BASE_DIR, "db_chroma")
 COLLECTION_NAME = "policies"
 CHUNK_SIZE = 300
 CHUNK_OVERLAP = 50
 
-# ============================================================================
-# DOCUMENT LOADING
-# ============================================================================
-
 def load_documents():
-    """
-    Loads all policy .txt files from the current directory.
-    
-    Returns:
-        list: List of dicts with 'id' and 'text' keys
-    """
     documents = []
+    # Use absolute path to find .txt files
+    search_path = os.path.join(BASE_DIR, "*.txt")
+    filenames = glob.glob(search_path)
     
-    # Find all .txt files in current directory
-    filenames = glob.glob("*.txt")
-    
-    # Debug output
-    print(f"DEBUG: Current working directory: {os.getcwd()}")
-    print(f"DEBUG: Found .txt files: {filenames}")
+    print(f"DEBUG: Searching in: {search_path}")
+    print(f"DEBUG: Found files: {filenames}")
     
     # Early return if no files found
     if not filenames:
@@ -64,22 +47,8 @@ def load_documents():
     print(f"Successfully loaded: {filenames}")
     return documents
 
-# ============================================================================
-# TEXT CHUNKING
-# ============================================================================
-
 def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
-    """
-    Splits text into smaller chunks using LangChain's RecursiveCharacterTextSplitter.
-    
-    Args:
-        text (str): Text to split
-        chunk_size (int): Maximum characters per chunk
-        overlap (int): Number of overlapping characters between chunks
-        
-    Returns:
-        list: List of text chunks
-    """
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=overlap,
@@ -88,18 +57,8 @@ def split_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     )
     return splitter.split_text(text)
 
-# ============================================================================
-# MAIN INGESTION FUNCTION
-# ============================================================================
 
 def ingest():
-    """
-    Main ingestion pipeline:
-    1. Load documents from disk
-    2. Split into chunks
-    3. Generate embeddings
-    4. Store in ChromaDB
-    """
     print("=" * 60)
     print("STARTING DATA INGESTION")
     print("=" * 60)
@@ -135,7 +94,7 @@ def ingest():
     print(f"✓ Created collection '{COLLECTION_NAME}'")
     
     # Step 3: Chunk documents
-    print("\n[3/4] Chunking documents...")
+    print("\n[3/3] Chunking documents...")
     ids = []
     metadatas = []
     documents_content = []
@@ -159,9 +118,6 @@ def ingest():
     
     print(f"✓ Generated {len(documents_content)} chunks")
     
-    # Step 4: Add to database (embeddings generated here)
-    print("\n[4/4] Generating embeddings and storing in database...")
-    print("(This may take a moment...)")
     
     collection.add(
         documents=documents_content,
@@ -174,9 +130,6 @@ def ingest():
     print("✅ INGESTION COMPLETE")
     print("=" * 60)
 
-# ============================================================================
-# ENTRY POINT
-# ============================================================================
 
 if __name__ == "__main__":
     ingest()

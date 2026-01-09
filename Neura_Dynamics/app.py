@@ -1,25 +1,12 @@
-"""
-Policy RAG Bot - Streamlit Application
-A conversational interface for querying company policies using RAG.
-"""
-
 import streamlit as st
 import os
 from rag import generate_answer, get_doc_count
-
-# ============================================================================
-# PAGE CONFIGURATION (Must be first Streamlit command)
-# ============================================================================
 
 st.set_page_config(
     page_title="Policy RAG Bot",
     page_icon="🤖",
     layout="centered"
 )
-
-# ============================================================================
-# SIDEBAR - ADMIN CONTROLS
-# ============================================================================
 
 with st.sidebar:
     st.header("⚙️ Settings")
@@ -37,29 +24,23 @@ with st.sidebar:
             st.success("✅ Database rebuilt successfully!")
             st.rerun()  # Refresh to show new count
 
-# ============================================================================
-# AUTOMATIC DATABASE INITIALIZATION
-# ============================================================================
-
 # Check if database is empty and auto-initialize if needed
-if get_doc_count() == 0:
+# Use session state to prevent re-running on every rerun
+if "db_initialized" not in st.session_state:
+    st.session_state.db_initialized = False
+
+if not st.session_state.db_initialized and get_doc_count() == 0:
     with st.spinner("🔨 Building Knowledge Base... (First time setup)"):
         from ingest import ingest
         ingest()
+        st.session_state.db_initialized = True
         st.success("✅ Knowledge Base initialized!")
-
-# ============================================================================
-# MAIN UI
-# ============================================================================
+        st.rerun()  # Refresh to show updated count
 
 st.title("🤖 Policy Assistant")
 st.markdown(
     "Ask questions about **Refunds**, **Cancellations**, or **Shipping** policies."
 )
-
-# ============================================================================
-# CHAT INTERFACE
-# ============================================================================
 
 # Initialize chat history in session state
 if "messages" not in st.session_state:
