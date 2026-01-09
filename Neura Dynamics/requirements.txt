@@ -1,8 +1,0 @@
-chromadb
-sentence-transformers
-transformers
-accelerate
-python-dotenv
-langchain
-langchain-community
-streamlit
