@@ -4,8 +4,17 @@ from src.rag import generate_answer
 
 st.set_page_config(page_title="Policy RAG Bot", page_icon="🤖")
 
+# Check if DB exists, if not, ingest data
+import os
+if not os.path.exists("db_chroma"):
+    with st.spinner("Building Knowledge Base... (This happens only once)"):
+        from src.ingest import ingest
+        ingest()
+        st.success("Knowledge Base Built!")
+
 st.title("🤖 Policy Assistant")
 st.markdown("Ask questions about **Refunds**, **Cancellations**, or **Shipping**.")
+
 
 # Chat history state
 if "messages" not in st.session_state:
