@@ -32,10 +32,49 @@ This is a Retrieval-Augmented Generation (RAG) system designed to answer questio
    ```bash
    python evaluate.py
    ```
-
+- **Evaluation test being used** :
+   ```bash
+   "What is the return policy window?",
+    "Do you offer free shipping?",
+    "Can I cancel my order after it has shipped?",
+    "Do you sell laptops?",  # Should be "I don't know"
+    "I haven't received my refund after 10 days, what do I do?"
+   ```
+## Prompts
+- **Prompt_Version_1** :
+  Vague with no proper instructions.
+  
+  ```bash
+      You are a helpful customer support assistant.
+      Answer the user's question based on the provided policy documents.
+      
+      Context:
+      {context}
+      
+      Question: {question}
+      Answer:
+   ```
+- **Prompt_Version_2** :
+  Detailed with how to answer.
+  
+   ```bash
+      You are an accurate and strict company policy assistant. Your goal is to answer user questions truthfully using ONLY the provided context.
+      
+      Instructions:
+      1. strict_grounding: Answer purely based on the 'Context' provided below. Do not use outside knowledge.
+      2. missing_info: If the answer is not explicitly stated in the context, respond with: "I cannot answer this based on the provided policies."
+      3. structure: Format your answer clearly. Use bullet points for lists.
+      4. tone: Professional and direct.
+      
+      Context:
+      {context}
+      
+      Question: {question}
+      Answer:
+   ```
 ## Architecture & Design
 
-- **Chunking**: Uses `RecursiveLike` paragraph splitting (approx 500 chars) to preserve semantic clause meaning.
+- **Chunking**: Uses `RecursiveSplitter` paragraph splitting (approx 300 chars) to preserve semantic clause meaning.
 - **Vector Store**: `ChromaDB` with `all-MiniLM-L6-v2` embeddings for efficient local retrieval.
 - **LLM**:
     - **Primary**: `google/flan-t5-base` (runs locally via Hugging Face Transformers).
