@@ -2,6 +2,8 @@
 
 This is a Retrieval-Augmented Generation (RAG) system designed to answer questions about company policies (Refund, Cancellation, Shipping) accurately and without hallucination.
 
+## Link : https://assignment-3qdq75wqsp3pbjljzfzicr.streamlit.app/
+
 ## Setup
 
 1. **Install Dependencies**
@@ -80,3 +82,4 @@ This is a Retrieval-Augmented Generation (RAG) system designed to answer questio
     - **Primary**: `google/flan-t5-base` (runs locally via Hugging Face Transformers).
     - **Prompting**: Managed via **LangChain** `PromptTemplate` to enforce strict grounding.
 - **Interface**: Built with **Streamlit** for an easy-to-use chat experience.
+
